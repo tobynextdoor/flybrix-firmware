@@ -219,6 +219,9 @@ void SerialComm::ProcessData(CobsReaderBuffer& data_input) {
                     }
                 }
             }
+            if (submask & CONFIG_struct::DEVICE_NAME) {
+                success = data_input.ParseInto(tmp_config.data.name);
+            }
             if (success && tmp_config.data.verify()) {
                 tmp_config.data.applyTo(*systems);
                 writeEEPROM(tmp_config);  // TODO: deal with side effect code
@@ -341,6 +344,9 @@ void SerialComm::SendPartialConfiguration(uint16_t submask, uint16_t led_mask) c
                 payload.Append(tmp_config.data.led_states.states[led_code]);
             }
         }
+    }
+    if (submask & CONFIG_struct::DEVICE_NAME) {
+        payload.Append(tmp_config.data.name);
     }
 
     WriteToOutput(payload);

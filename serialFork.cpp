@@ -49,7 +49,7 @@ struct Bluetooth {
         Serial1.begin(57600);
     }
 
-    void setBluetoothUart();
+    void setBluetoothUart(const String& name);
 
     bool read() {
         while (Serial1.available()) {
@@ -78,7 +78,9 @@ struct Bluetooth {
    private:
     struct BluetoothBuffer {
         size_t hasData() {
-            size_t increment{(readerPointer <= writerPointer) ? (writerPointer - readerPointer) : (bufferSize - readerPointer)};
+            size_t increment{(readerPointer <= writerPointer)
+                                 ? (writerPointer - readerPointer)
+                                 : (bufferSize - readerPointer)};
             if (increment > bufferChunk)
                 return bufferChunk;
             return increment;
@@ -139,7 +141,7 @@ void flushATmodeResponse() {
     }
 }
 
-void Bluetooth::setBluetoothUart() {
+void Bluetooth::setBluetoothUart(const String& name) {
     // PIN 12 of teensy is BMD (P0.13)
     // PIN 30 of teensy is BMD (PO.14) AT Mode
     // PIN 28 of teensy is BMD RST
@@ -152,54 +154,31 @@ void Bluetooth::setBluetoothUart() {
     digitalWriteFast(board::bluetooth::MODE, LOW);   // set AT mode
     digitalWriteFast(board::bluetooth::RESET, LOW);  // reset BMD
     delay(100);
-    digitalWriteFast(board::bluetooth::RESET, HIGH);  // reset BMD complete, now in AT mode
-    delay(2500); // time needed initialization of AT mode
-    uint8_t data[18];
+    // reset BMD complete, now in AT mode
+    digitalWriteFast(board::bluetooth::RESET, HIGH);
+    delay(2500);  // time needed initialization of AT mode
 
-    data[0] = 'a';
-    data[1] = 't';
-    data[2] = '$';
-
-    data[3] = 'u';
-    data[4] = 'e';
-    data[5] = 'n';
-    data[6] = ' ';
-    data[7] = '0';
-    data[8] = '1';
-    data[9] = '\n';
-    Serial1.write(data, 10);
-
+    Serial1.println("at$uen 01");
     flushATmodeResponse();
 
-    data[3] = 'n';
-    data[4] = 'a';
-    data[5] = 'm';
-    data[6] = 'e';
-    data[7] = ' ';
-    data[8] = 'F';
-    data[9] = 'L';
-    data[10] = 'Y';
-    data[11] = 'B';
-    data[12] = 'R';
-    data[13] = 'I';
-    data[14] = 'X';
-    data[15] = '\n';
-    Serial1.write(data, 16);
-
+    Serial1.print("at$name ");
+    Serial1.println(name);
     flushATmodeResponse();
 
     digitalWriteFast(board::bluetooth::MODE, HIGH);
-    digitalWriteFast(board::bluetooth::RESET, LOW);  // reset BMD
+    // reset BMD
+    digitalWriteFast(board::bluetooth::RESET, LOW);
     delay(100);
-    digitalWriteFast(board::bluetooth::RESET, HIGH);  // reset BMD complete, now not in AT mode
+    // reset BMD complete, now not in AT mode
+    digitalWriteFast(board::bluetooth::RESET, HIGH);
 }
 
 #endif
 }
 
-void setBluetoothUart() {
+void setBluetoothUart(const String& name) {
 #ifndef ALPHA
-    bluetooth.setBluetoothUart();
+    bluetooth.setBluetoothUart(name);
 #endif
 }
 

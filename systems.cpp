@@ -26,6 +26,7 @@ Systems::Systems()
       control{&state, Control::PIDParameters()},
       // listen for configuration inputs
       conf{&state, RX, &control, this, &led, &pilot},
-      id{0} {
+      id{0},
+      name{"FLYBRIX"} {
     CONFIG_struct().applyTo(*this);
 }

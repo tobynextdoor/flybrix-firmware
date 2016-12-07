@@ -26,6 +26,7 @@
 #include "led.h"
 #include "state.h"
 #include "version.h"
+#include "deviceName.h"
 
 struct Systems;
 
@@ -67,6 +68,7 @@ struct __attribute__((packed)) CONFIG_struct {
         PID_PARAMETERS = 1 << 6,
         STATE_PARAMETERS = 1 << 7,
         LED_STATES = 1 << 8,
+        DEVICE_NAME = 1 << 9,
     };
 
     CONFIG_struct();
@@ -83,17 +85,19 @@ struct __attribute__((packed)) CONFIG_struct {
     Control::PIDParameters pid_parameters;
     State::Parameters state_parameters;
     LED::States led_states;
+    DeviceName name;
 };
 
 static_assert(sizeof(CONFIG_struct) ==
-                  sizeof(Version) + sizeof(ConfigID) + sizeof(PcbTransform) +
-                      sizeof(Airframe::MixTable) + sizeof(AK8963::MagBias) +
+                  sizeof(DeviceName) + sizeof(Version) + sizeof(ConfigID) +
+                      sizeof(PcbTransform) + sizeof(Airframe::MixTable) +
+                      sizeof(AK8963::MagBias) +
                       sizeof(R415X::ChannelProperties) +
                       sizeof(State::Parameters) +
                       sizeof(Control::PIDParameters) + sizeof(LED::States),
               "Data is not packed");
 
-static_assert(sizeof(CONFIG_struct) == 619, "Data does not have expected size");
+static_assert(sizeof(CONFIG_struct) == 639, "Data does not have expected size");
 
 union CONFIG_union {
     CONFIG_union() : data{CONFIG_struct()} {

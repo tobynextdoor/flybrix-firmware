@@ -17,10 +17,10 @@
 #define BYPASS_ROLL_SLAVE 1 << 6
 #define BYPASS_YAW_SLAVE 1 << 7
 
-CONFIG_struct::CONFIG_struct() {  // Default Settings
-    pcb.orientation[0] = 0.0f;    // pitch; applied first
-    pcb.orientation[1] = 0.0f;    // roll;  applied second
-    pcb.orientation[2] = 0.0f;    // yaw;   applied last
+CONFIG_struct::CONFIG_struct() : name() {  // Default Settings
+    pcb.orientation[0] = 0.0f;             // pitch; applied first
+    pcb.orientation[1] = 0.0f;             // roll;  applied second
+    pcb.orientation[2] = 0.0f;             // yaw;   applied last
 
     pcb.translation[0] = 0.0f;  // x (mm)
     pcb.translation[1] = 0.0f;  // y (mm)
@@ -186,21 +186,39 @@ CONFIG_struct::CONFIG_struct() {  // Default Settings
     state_parameters.enable[0] = 0.001f;  // max variance
     state_parameters.enable[1] = 30.0f;   // max angle
 
-    //fading is in 256ths : https://github.com/FastLED/FastLED/wiki/Pixel-reference
+    // fading is in 256ths :
+    // https://github.com/FastLED/FastLED/wiki/Pixel-reference
     led_states = LED::States{{
-        LED::StateCase(STATUS_MPU_FAIL,       LED::SOLID,     CRGB(CRGB::Black ).fadeLightBy(230), CRGB(CRGB::Red   ).fadeLightBy(230), true),
-        LED::StateCase(STATUS_BMP_FAIL,       LED::SOLID,     CRGB(CRGB::Red   ).fadeLightBy(230), CRGB(CRGB::Black ).fadeLightBy(230), true),
-        LED::StateCase(STATUS_BOOT,           LED::SOLID,     CRGB(CRGB::Green ).fadeLightBy(230)),
-        LED::StateCase(STATUS_RX_FAIL,        LED::FLASH,     CRGB(CRGB::Orange).fadeLightBy(230)),
-        LED::StateCase(STATUS_FAIL_OTHER,     LED::ALTERNATE, CRGB(CRGB::Blue  ).fadeLightBy(230)),        
-        LED::StateCase(STATUS_FAIL_STABILITY, LED::FLASH,     CRGB(CRGB::Black ).fadeLightBy(230), CRGB(CRGB::Blue  ).fadeLightBy(230)),
-        LED::StateCase(STATUS_FAIL_ANGLE,     LED::FLASH,     CRGB(CRGB::Blue  ).fadeLightBy(230), CRGB(CRGB::Black ).fadeLightBy(230)),
-        LED::StateCase(STATUS_OVERRIDE,       LED::BEACON,    CRGB(CRGB::Red   ).fadeLightBy(230)),
-        LED::StateCase(STATUS_TEMP_WARNING,   LED::FLASH,     CRGB(CRGB::Red   ).fadeLightBy(230)),
-        LED::StateCase(STATUS_BATTERY_LOW,    LED::BEACON,    CRGB(CRGB::Orange).fadeLightBy(230)),
-        LED::StateCase(STATUS_ENABLING,       LED::FLASH,     CRGB(CRGB::Blue  ).fadeLightBy(230)),
-        LED::StateCase(STATUS_ENABLED,        LED::BEACON,    CRGB(CRGB::Blue  ).fadeLightBy(230)),
-        LED::StateCase(STATUS_IDLE,           LED::BEACON,    CRGB(CRGB::Green ).fadeLightBy(230)),
+        LED::StateCase(STATUS_MPU_FAIL, LED::SOLID,
+                       CRGB(CRGB::Black).fadeLightBy(230),
+                       CRGB(CRGB::Red).fadeLightBy(230), true),
+        LED::StateCase(STATUS_BMP_FAIL, LED::SOLID,
+                       CRGB(CRGB::Red).fadeLightBy(230),
+                       CRGB(CRGB::Black).fadeLightBy(230), true),
+        LED::StateCase(STATUS_BOOT, LED::SOLID,
+                       CRGB(CRGB::Green).fadeLightBy(230)),
+        LED::StateCase(STATUS_RX_FAIL, LED::FLASH,
+                       CRGB(CRGB::Orange).fadeLightBy(230)),
+        LED::StateCase(STATUS_FAIL_OTHER, LED::ALTERNATE,
+                       CRGB(CRGB::Blue).fadeLightBy(230)),
+        LED::StateCase(STATUS_FAIL_STABILITY, LED::FLASH,
+                       CRGB(CRGB::Black).fadeLightBy(230),
+                       CRGB(CRGB::Blue).fadeLightBy(230)),
+        LED::StateCase(STATUS_FAIL_ANGLE, LED::FLASH,
+                       CRGB(CRGB::Blue).fadeLightBy(230),
+                       CRGB(CRGB::Black).fadeLightBy(230)),
+        LED::StateCase(STATUS_OVERRIDE, LED::BEACON,
+                       CRGB(CRGB::Red).fadeLightBy(230)),
+        LED::StateCase(STATUS_TEMP_WARNING, LED::FLASH,
+                       CRGB(CRGB::Red).fadeLightBy(230)),
+        LED::StateCase(STATUS_BATTERY_LOW, LED::BEACON,
+                       CRGB(CRGB::Orange).fadeLightBy(230)),
+        LED::StateCase(STATUS_ENABLING, LED::FLASH,
+                       CRGB(CRGB::Blue).fadeLightBy(230)),
+        LED::StateCase(STATUS_ENABLED, LED::BEACON,
+                       CRGB(CRGB::Blue).fadeLightBy(230)),
+        LED::StateCase(STATUS_IDLE, LED::BEACON,
+                       CRGB(CRGB::Green).fadeLightBy(230)),
     }};
 
     // This function will only initialize data variables
@@ -214,7 +232,8 @@ CONFIG_struct::CONFIG_struct(Systems& sys)
       channel(sys.receiver.channel),
       pid_parameters(sys.control.pid_parameters),
       state_parameters(sys.state.parameters),
-      led_states(sys.led.states) {
+      led_states(sys.led.states),
+      name{sys.name} {
 }
 
 void CONFIG_struct::applyTo(Systems& systems) const {
@@ -226,6 +245,7 @@ void CONFIG_struct::applyTo(Systems& systems) const {
     systems.control.parseConfig(pid_parameters);
     systems.led.parseConfig(led_states);
     systems.id = id;
+    systems.name = name.value;
 }
 
 template <class T>
@@ -241,7 +261,7 @@ bool verifyArgs(T& var, TArgs&... varArgs) {
 
 bool CONFIG_struct::verify() const {
     return verifyArgs(version, pcb, mix_table, mag_bias, channel,
-                      pid_parameters, state_parameters, led_states, id);
+                      pid_parameters, state_parameters, led_states, id, name);
 }
 
 void writeEEPROM(const CONFIG_union& CONFIG) {
