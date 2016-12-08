@@ -97,7 +97,7 @@ static_assert(sizeof(CONFIG_struct) ==
                       sizeof(Control::PIDParameters) + sizeof(LED::States),
               "Data is not packed");
 
-static_assert(sizeof(CONFIG_struct) == 639, "Data does not have expected size");
+static_assert(sizeof(CONFIG_struct) == 628, "Data does not have expected size");
 
 union CONFIG_union {
     CONFIG_union() : data{CONFIG_struct()} {

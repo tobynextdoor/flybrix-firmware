@@ -11,9 +11,9 @@ struct __attribute__((packed)) DeviceName {
 
     bool verify() const;
 
-    char value[20];
+    char value[9];
 };
 
-static_assert(sizeof(DeviceName) == sizeof(char) * 20, "Data is not packed");
+static_assert(sizeof(DeviceName) == sizeof(char) * 9, "Data is not packed");
 
 #endif /* DEVICENAME_H */

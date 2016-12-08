@@ -48,6 +48,6 @@ bool DeviceName::verify() const {
             return true;
         }
     }
-    DebugPrint("Given device name is too long (max 19 characters)!");
+    DebugPrint("Given device name is too long (max 8 characters)!");
     return false;
 }
